@@ -15,6 +15,7 @@ router.get('/', (req, res) => {
     });
 });
 
+// get user by id
 router.get('/:id', (req, res) => {
   User.findOne({
     attributes: { exclude: ['password'] },
@@ -35,6 +36,7 @@ router.get('/:id', (req, res) => {
     });
 });
 
+// post new user
 router.post('/', (req, res) => {
   User.create({
     username: req.body.username,
@@ -48,6 +50,31 @@ router.post('/', (req, res) => {
     });
 });
 
+// user verification
+router.post('/login', (req, res) => {
+    // expects user email and password
+      User.findOne({
+        where: {
+          email: req.body.email
+        }
+      }).then(dbUserData => {
+        if (!dbUserData) {
+          res.status(400).json({ message: 'No user with that email address!' });
+          return;
+        }
+    
+        // Verify user
+        const validPassword = dbUserData.checkPassword(req.body.password)
+        if (!validPassword) {
+            res.status(400).json({ message: `incorrect password`})
+            return
+        }
+        res.json({ user: dbUserData, message: `you are now logged in!`})
+    
+      });  
+    });
+
+// update existing user
 router.put('/:id', (req, res) => {
 
   // pass in req.body instead to only update what's passed through
@@ -70,6 +97,7 @@ router.put('/:id', (req, res) => {
     });
 });
 
+// delete user
 router.delete('/:id', (req, res) => {
   User.destroy({
     where: {
